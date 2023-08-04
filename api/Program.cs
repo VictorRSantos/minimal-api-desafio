@@ -134,6 +134,8 @@ void MapRoutesClientes(WebApplication app)
     .Produces<Error>(StatusCodes.Status400BadRequest)
     .WithName("PutClientes")
     .WithTags("Clientes");
+
+    
 }
 
 #endregion
