@@ -3,6 +3,8 @@ using MinimalApiDesafio.ModelViews;
 using MinimalApiDesafio.DTOs;
 using MinimalApiDesafio.Models;
 using Microsoft.OpenApi.Models;
+using Microsoft.EntityFrameworkCore;
+using minimal_api_desafio.Database;
 
 namespace MinimalApiDesafio;
 
@@ -24,7 +26,10 @@ public class Startup
         });
 
         services.AddEndpointsApiExplorer();
-
+        
+        services.AddDbContext<DbContexto>(options =>
+             options.UseSqlServer(Configuration.GetConnectionString("ConexaoSqlServer"))
+          );
         //services.AddScoped<IStudentsService, StudentsService>();
     }
 
