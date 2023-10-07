@@ -27,10 +27,8 @@ public class Startup
         });
 
         services.AddEndpointsApiExplorer();
-
-        services.AddDbContext<DbContexto>(options =>
-             options.UseSqlServer(Configuration.GetConnectionString("ConexaoSqlServer"))
-          );
+     
+        services.AddDbContext<DbContexto>(options => options.UseSqlServer(Configuration.GetConnectionString("ConexaoSqlServer")));
 
         services.AddScoped<IBancoDeDadosServicos<Cliente>, ClientesServico>();
     }
