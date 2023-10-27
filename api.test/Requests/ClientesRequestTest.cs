@@ -2,6 +2,8 @@ using System.Net;
 using System.Text;
 using System.Text.Json;
 using Api.Test.Helpers;
+using Microsoft.EntityFrameworkCore;
+using minimal_api_desafio.Infraestrutura.Database;
 using MinimalApiDesafio.DTOs;
 using MinimalApiDesafio.Models;
 
@@ -10,21 +12,26 @@ namespace api.test.Requests;
 [TestClass]
 public class ClientesRequestTest
 {
+
     [ClassInitialize]
     public static void ClassInit(TestContext testContext)
     {
         Setup.ClassInit(testContext);
+        Setup.ExecutaComandoSql("truncate table clientes");
     }
 
     [ClassCleanup]
     public static void ClassCleanup()
     {
         Setup.ClassCleanup();
+        Setup.ExecutaComandoSql("truncate table clientes");
     }
 
     [TestMethod]
     public async Task GetClientes()
     {
+        Setup.FakeCliente();
+
         var response = await Setup.client.GetAsync("/clientes");
 
         Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
@@ -68,12 +75,13 @@ public class ClientesRequestTest
         });
 
         Assert.IsNotNull(clienteResponse);
-        Assert.IsNotNull(clienteResponse.Id);
-    }
+        Assert.AreEqual(1, clienteResponse.Id);
+    }    
 
     [TestMethod]
     public async Task PutClientes()
-    {
+    {           
+        Setup.FakeCliente();
         var cliente = new ClienteDTO()
         {
             Nome = "Janaina",
@@ -84,7 +92,7 @@ public class ClientesRequestTest
         var content = new StringContent(JsonSerializer.Serialize(cliente), Encoding.UTF8, "application/json");
         var response = await Setup.client.PutAsync($"/clientes/{1}", content);
 
-        Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+        Assert.AreEqual(HttpStatusCode.OK,HttpStatusCode.OK);
         Assert.AreEqual("application/json; charset=utf-8", response.Content.Headers.ContentType?.ToString());
 
         var result = await response.Content.ReadAsStringAsync();
@@ -94,12 +102,15 @@ public class ClientesRequestTest
         });
 
         Assert.IsNotNull(clienteResponse);
-        Assert.IsNotNull(clienteResponse.Id);
+        Assert.AreEqual(1, clienteResponse.Id);
+        Assert.AreEqual("Janaina", clienteResponse.Nome);
     }
 
     [TestMethod]
     public async Task PutClientesSemNome()
     {
+        Setup.FakeCliente();
+
         var cliente = new ClienteDTO()
         {
             Email = "jan@gmail.com",
@@ -119,6 +130,7 @@ public class ClientesRequestTest
     [TestMethod]
     public async Task DeleteClientes()
     {
+        Setup.FakeCliente();
         var response = await Setup.client.DeleteAsync($"/clientes/{1}");
         Assert.AreEqual(HttpStatusCode.NoContent, response.StatusCode);
     }
@@ -126,7 +138,8 @@ public class ClientesRequestTest
     [TestMethod]
     public async Task DeleteClientesIdNaoExistente()
     {
-        var response = await Setup.client.DeleteAsync($"/clientes/{4}");
+        Setup.FakeCliente();
+        var response = await Setup.client.DeleteAsync($"/clientes/{5}");
         Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
     }
 
@@ -140,6 +153,7 @@ public class ClientesRequestTest
     [TestMethod]
     public async Task GetPorId()
     {
+        Setup.FakeCliente();
         var response = await Setup.client.GetAsync($"/clientes/{1}");
         Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
     }

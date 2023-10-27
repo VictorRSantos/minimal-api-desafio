@@ -16,7 +16,7 @@ public class Startup
         Configuration = configuration;
     }
 
-    public IConfiguration Configuration { get; }
+    public static IConfiguration? Configuration { get; set; }
 
     public void ConfigureServices(IServiceCollection services)
     {
@@ -27,8 +27,8 @@ public class Startup
         });
 
         services.AddEndpointsApiExplorer();
-     
-        services.AddDbContext<DbContexto>(options => options.UseSqlServer(Configuration.GetConnectionString("ConexaoSqlServer")));
+
+        services.AddDbContext<DbContexto>(options => options.UseSqlServer(Configuration?.GetConnectionString("ConexaoSqlServer")));
 
         services.AddScoped<IBancoDeDadosServicos<Cliente>, ClientesServico>();
     }
@@ -125,6 +125,16 @@ public class Startup
 
         app.MapPut("/clientes/{id}", async ([FromServices] IBancoDeDadosServicos<Cliente> clientesServico, [FromRoute] int id, [FromBody] ClienteDTO clienteDTO) =>
         {
+
+            if (clienteDTO.Nome is null)
+            {
+                return Results.BadRequest(new Error
+                {
+                    Codigo = 123432,
+                    Mensagem = $"O Nome é obrigatório"
+                });
+            }
+
             var clienteDb = await clientesServico.BuscaPorId(id);
             if (clienteDb is null)
             {
@@ -135,16 +145,15 @@ public class Startup
                 });
             }
 
-            var cliente = new Cliente
-            {
-                Id = id,
-                Nome = clienteDTO.Nome,
-                Telefone = clienteDTO.Telefone,
-                Email = clienteDTO.Email,
-            };
 
-            await clientesServico.Salvar(cliente);
-            return Results.Ok(cliente);
+
+            clienteDb.Nome = clienteDTO.Nome;
+            clienteDb.Telefone = clienteDTO.Telefone;
+            clienteDb.Email = clienteDTO.Email;
+
+
+            await clientesServico.Salvar(clienteDb);
+            return Results.Ok(clienteDb);
         })
         .Produces<Cliente>(StatusCodes.Status200OK)
         .Produces<Error>(StatusCodes.Status404NotFound)
@@ -165,8 +174,8 @@ public class Startup
             }
 
             clienteDb.Nome = clienteNomeDTO.Nome;
-           
-            await clientesServico.Salvar(clienteDb);          
+
+            await clientesServico.Salvar(clienteDb);
 
             return Results.Ok(clienteDb);
         })
